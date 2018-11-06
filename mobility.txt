@@ -1,0 +1,53 @@
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
+from bokeh.io import output_notebook
+from bokeh.io import show
+from bokeh.plotting import figure
+from ipywidgets import interact
+from bokeh.io import push_notebook
+from bokeh.models import Select
+from bokeh.layouts import widgetbox
+from bokeh.plotting import curdoc
+
+data = pd.read_csv('He-Hy-O-N2_mobility.csv')
+
+output_notebook()
+
+PLOT_OPTS = dict(
+    x_axis_type='log', y_axis_type='log', y_range=(1.3*10**24,5*10**24),
+    x_axis_label = "Electric Field (E/N)",
+    y_axis_label = "Mobility*N (1/m/V/s)"   
+)
+
+from bokeh.models import ColumnDataSource
+source = ColumnDataSource(dict(
+    x = data.iloc[:,0],
+    y = data.iloc[:,0]
+    
+    ))
+from bokeh.models import HoverTool
+hover = HoverTool(tooltips='@x')
+p = figure(tools=[hover],**PLOT_OPTS)
+p.circle(x= data.iloc[:,0], y=data.iloc[:,1],color="red")
+p.circle(x='x',y='y',source=source)
+show(p, notebook_handle=True)
+
+def update(humidity,oxygen,nitrogen):
+
+    
+    index_num = 10*nitrogen*625+10*oxygen*25+(10*humidity+1)
+    index_num=int(index_num)
+    print (index_num)
+
+    new_data = dict(
+        x = data.iloc[:,0],
+        y = data.iloc[:,index_num]
+    )
+    
+    source.data = new_data
+    push_notebook()
+
+interact(update,
+         humidity=(0., 2.401,0.1),oxygen=(0.,2.401,0.1),nitrogen=(0.,2.401,0.1))
